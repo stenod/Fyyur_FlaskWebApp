@@ -192,11 +192,6 @@ def show_venue(venue_id):
     # TODO: replace with real venue data from the venues table, using venue_id
     current_time = datetime.utcnow()
 
-    num_upcoming_shows = db.session.query(Show.artist_id) \
-        .filter(Show.start_time > current_time, Show.venue_id == venue_id).count()
-    num_past_shows = db.session.query(db.func.count(Show.artist_id)) \
-        .filter(Show.start_time < current_time, Show.venue_id == venue_id).count()
-
     upcoming_shows = db.session.query(Artist.id.label('artist_id'), Artist.name.label('artist_name'),
                                       Artist.image_link.label('artist_image_link'),
                                       Show.start_time).join(Show) \
@@ -210,8 +205,8 @@ def show_venue(venue_id):
 
     data['upcoming_shows'] = upcoming_shows
     data['past_shows'] = past_shows
-    data['num_upcoming_shows'] = num_upcoming_shows
-    data['num_past_shows'] = num_past_shows
+    data['num_upcoming_shows'] = len(data['upcoming_shows'])
+    data['num_past_shows'] = len(data['past_shows'])
 
     # data['upcoming_shows'] = data['upcoming_shows'].start_time.strftime("%Y-%m-%d %H:%M:%S")
     # data['past_shows'] = data['past_shows'].start_time.strftime("%Y-%m-%d %H:%M:%S")
@@ -296,10 +291,6 @@ def show_venue(venue_id):
     # data = list(filter(lambda d: d['id'] == venue_id, [data1, data2, data3]))[0]
 
     return render_template('pages/show_venue.html', venue=data)
-
-
-def get_count(q):
-    return q.with_entities(func.count()).scalar()
 
 
 #  Create Venue
