@@ -15,6 +15,7 @@ import logging
 from logging import Formatter, FileHandler
 from flask_wtf import Form, CSRFProtect
 from sqlalchemy import func, inspect
+from sqlalchemy.ext.hybrid import hybrid_property
 
 from forms import *
 from flask_migrate import Migrate
@@ -57,6 +58,16 @@ class Venue(db.Model):
                                                      "Show.start_time<'NOW()')", backref='venue_past', lazy=True)
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
+
+
+@hybrid_property
+def genres(self):
+    return json.loads(self.genres)
+
+
+@genres.setter
+def genres(self, genres):
+    self.genres = json.dump(genres)
 
 
 class Artist(db.Model):
@@ -187,9 +198,11 @@ def create_venue_submission():
     form = VenueForm(request.form)
     if request.method == 'POST' and form.validate():
         try:
-            venue = Venue(name=form.name.data, city=form.city.data, state=form.state.data, address=form.address.data, phone=form.phone.data,
-                          genres=form.genres.data,
-                          facebook_link=form.facebook_link.data, website=form.website_link.data, seeking_talent=form.seeking_talent.data,
+            venue = Venue(name=form.name.data, city=form.city.data, state=form.state.data, address=form.address.data,
+                          phone=form.phone.data,
+                          genres=','.join(form.genres.data),
+                          facebook_link=form.facebook_link.data, website=form.website_link.data,
+                          seeking_talent=form.seeking_talent.data,
                           seeking_description=form.seeking_description.data)
             db.session.add(venue)
             db.session.commit()
