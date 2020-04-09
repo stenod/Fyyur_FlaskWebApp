@@ -15,7 +15,6 @@ import logging
 from logging import Formatter, FileHandler
 from flask_wtf import Form, CSRFProtect
 from sqlalchemy import func, inspect
-from sqlalchemy.ext.hybrid import hybrid_property
 
 from forms import *
 from flask_migrate import Migrate
@@ -83,6 +82,7 @@ class Artist(db.Model):
     seeking_venue = db.Column(db.BOOLEAN, nullable=False, default=False)
     seeking_description = db.Column(db.String(300))
     image_link = db.Column(db.String(500))
+    website_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
     upcoming_shows = db.relationship('Show', primaryjoin="and_(Artist.id==Show.artist_id, "
                                                          "Show.start_time>'NOW()')", backref='artist_upcoming',
@@ -216,8 +216,6 @@ def create_venue_submission():
         finally:
             db.session.close()
     return render_template('pages/home.html')
-
-    # TODO: modify data to be the data object returned from db insertion
 
 
 @app.route('/venues/<venue_id>', methods=['DELETE'])
@@ -367,12 +365,13 @@ def create_artist_form():
 @app.route('/artists/create', methods=['POST'])
 def create_artist_submission():
     form = ArtistForm(request.form)
+    test = form.validate()
     if request.method == 'POST' and form.validate():
         try:
             artist = Artist(name=form.name.data, city=form.city.data, state=form.state.data,
                             phone=form.phone.data,
                             genres=','.join(form.genres.data),
-                            facebook_link=form.facebook_link.data, website=form.website_link.data,
+                            facebook_link=form.facebook_link.data, website_link=form.website_link.data,
                             seeking_venue=form.seeking_venue.data,
                             seeking_description=form.seeking_description.data)
             db.session.add(artist)
@@ -384,7 +383,7 @@ def create_artist_submission():
             flash('Artist ' + request.form['name'] + ' could not have been added')
         finally:
             db.session.close()
-            return render_template('pages/home.html')
+    return render_template('pages/home.html')
 
 
 #  Shows
