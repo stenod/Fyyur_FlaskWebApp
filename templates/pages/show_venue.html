@@ -1,6 +1,7 @@
 {% extends 'layouts/main.html' %}
 {% block title %}Venue Search{% endblock %}
 {% block content %}
+    <div class="spinner"></div>
     <div class="row">
         <div class="col-sm-6">
             <h1 class="monospace">
@@ -84,36 +85,38 @@
     </section>
 
     <div class="form-wrapper">
-                <form id="delete-form" class="form" method="post">
-                    <div class="form-group">
-                        <label>Delete Venue</label>
-                        <button type="button" class="btn btn-danger delete-button" data-id="{{ venue.id }}">&cross;
-                        </button>
-                    </div>
-                </form>
+        <form id="delete-form" class="form" method="post">
+            <div class="form-group">
+                <label>Delete Venue</label>
+                <button type="button" class="btn btn-danger delete-button" data-id="{{ venue.id }}">&cross;
+                </button>
             </div>
-<script>
-let csrf_token = "{{ csrf_token() }}";
-const headers = new Headers({
-        'X-CSRFToken': csrf_token
-    });
-const deleteButtons = document.getElementsByClassName('delete-button');
-for (let i = 0; i < deleteButtons.length; i++) {
-    const deleteButton = deleteButtons[i];
-    deleteButton.onclick = function (e) {
-        console.log(e.target.dataset['id']);
-        const deleteButtonId = e.target.dataset['id'];
-        fetch('/venues/' + deleteButtonId, {
-            method: 'DELETE',
-            headers
-        }).then(function () {
-          console.log('Success')
-        })
-            .catch(function () {
+        </form>
+    </div>
+
+    <script>
+        let csrf_token = "{{ csrf_token() }}";
+        const headers = new Headers({
+            'X-CSRFToken': csrf_token
+        });
+        const deleteButtons = document.getElementsByClassName('delete-button');
+        for (let i = 0; i < deleteButtons.length; i++) {
+            const deleteButton = deleteButtons[i];
+            deleteButton.onclick = function (e) {
+                const deleteButtonId = e.target.dataset['id'];
+                fetch('/venues/' + deleteButtonId, {
+                    method: 'DELETE',
+                    headers
+                }).then(response => response.json()).then(jsonResponse => {
+                    if (jsonResponse.success) {
+                        window.location.pathname = '/venues'
+                    }
+                })
+                    .catch(function () {
                         console.log('Error')
-            })
-    }
-}
-</script>
+                    })
+            }
+        }
+    </script>
 {% endblock %}
 
