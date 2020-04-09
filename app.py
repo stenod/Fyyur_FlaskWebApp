@@ -51,23 +51,24 @@ class Venue(db.Model):
     seeking_description = db.Column(db.String(300))
     website = db.Column(db.String(120))
     facebook_link = db.Column(db.String(120))
-    upcoming_shows = db.relationship('Show', primaryjoin="and_(Venue.id==Show.venue_id, "
-                                                         "Show.start_time>'NOW()')", backref='venue_upcoming',
-                                     lazy=True)
-    past_shows = db.relationship('Show', primaryjoin="and_(Venue.id==Show.venue_id, "
-                                                     "Show.start_time<'NOW()')", backref='venue_past', lazy=True)
+    shows = db.relationship('Show', backref='venue', lazy=True)
+    # upcoming_shows = db.relationship('Show', primaryjoin="and_(Venue.id==Show.venue_id, "
+    #                                                      "Show.start_time>'NOW()')", backref='venue_upcoming',
+    #                                  lazy=True)
+    # past_shows = db.relationship('Show', primaryjoin="and_(Venue.id==Show.venue_id, "
+    #                                                  "Show.start_time<'NOW()')", backref='venue_past', lazy=True)
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
 
-@hybrid_property
-def genres(self):
-    return json.loads(self.genres)
-
-
-@genres.setter
-def genres(self, genres):
-    self.genres = json.dump(genres)
+# @hybrid_property
+# def genres(self):
+#     return json.loads(self.genres)
+#
+#
+# @genres.setter
+# def genres(self, genres):
+#     self.genres = json.dump(genres)
 
 
 class Artist(db.Model):
@@ -241,33 +242,21 @@ def delete_venue(venue_id):
 #  ----------------------------------------------------------------
 @app.route('/artists')
 def artists():
-    # TODO: replace with real data returned from querying the database
-    data = [{
-        "id": 4,
-        "name": "Guns N Petals",
-    }, {
-        "id": 5,
-        "name": "Matt Quevedo",
-    }, {
-        "id": 6,
-        "name": "The Wild Sax Band",
-    }]
+    data = db.session.query(Artist.id,Artist.name).all()
     return render_template('pages/artists.html', artists=data)
 
 
 @app.route('/artists/search', methods=['POST'])
 def search_artists():
-    # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
     # seach for "A" should return "Guns N Petals", "Matt Quevado", and "The Wild Sax Band".
     # search for "band" should return "The Wild Sax Band".
-    response = {
-        "count": 1,
-        "data": [{
-            "id": 4,
-            "name": "Guns N Petals",
-            "num_upcoming_shows": 0,
-        }]
-    }
+    response = {}
+    search_term = request.form.get('search_term', '')
+    num_upcoming_shows = db.session.query(db.func.count(Show.artist_id)).filter_by(artist_id=Venue.id)
+
+    response['count'] = Artist.query.filter(db.func.lower(Artist.name).contains(db.func.lower(search_term))).count()
+    response['data'] = db.session.query(Artist.id, Artist.name, num_upcoming_shows.label('num_upcoming_shows')) \
+        .filter(db.func.lower(Artist.name).contains(db.func.lower(search_term))).all()
     return render_template('pages/search_artists.html', results=response,
                            search_term=request.form.get('search_term', ''))
 
