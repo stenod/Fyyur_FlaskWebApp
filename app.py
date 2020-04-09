@@ -244,7 +244,7 @@ def delete_venue(venue_id):
 #  ----------------------------------------------------------------
 @app.route('/artists')
 def artists():
-    data = db.session.query(Artist.id,Artist.name).all()
+    data = db.session.query(Artist.id, Artist.name).all()
     return render_template('pages/artists.html', artists=data)
 
 
@@ -366,15 +366,25 @@ def create_artist_form():
 
 @app.route('/artists/create', methods=['POST'])
 def create_artist_submission():
-    # called upon submitting the new artist listing form
-    # TODO: insert form data as a new Venue record in the db, instead
-    # TODO: modify data to be the data object returned from db insertion
-
-    # on successful db insert, flash success
-    flash('Artist ' + request.form['name'] + ' was successfully listed!')
-    # TODO: on unsuccessful db insert, flash an error instead.
-    # e.g., flash('An error occurred. Artist ' + data.name + ' could not be listed.')
-    return render_template('pages/home.html')
+    form = ArtistForm(request.form)
+    if request.method == 'POST' and form.validate():
+        try:
+            artist = Artist(name=form.name.data, city=form.city.data, state=form.state.data,
+                            phone=form.phone.data,
+                            genres=','.join(form.genres.data),
+                            facebook_link=form.facebook_link.data, website=form.website_link.data,
+                            seeking_venue=form.seeking_venue.data,
+                            seeking_description=form.seeking_description.data)
+            db.session.add(artist)
+            db.session.commit()
+            flash('Artist ' + request.form['name'] + ' was successfully listed!')
+        except:
+            db.session.rollback()
+            print(sys.exc_info())
+            flash('Artist ' + request.form['name'] + ' could not have been added')
+        finally:
+            db.session.close()
+            return render_template('pages/home.html')
 
 
 #  Shows
