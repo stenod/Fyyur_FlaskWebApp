@@ -51,18 +51,6 @@ class Venue(db.Model):
     facebook_link = db.Column(db.String(120))
     shows = db.relationship('Show', backref='venue', lazy=True)
 
-    # TODO: implement any missing fields, as a database migration using Flask-Migrate
-
-
-# @hybrid_property
-# def genres(self):
-#     return json.loads(self.genres)
-#
-#
-# @genres.setter
-# def genres(self, genres):
-#     self.genres = json.dump(genres)
-
 
 class Artist(db.Model):
     __tablename__ = 'Artist'
@@ -137,8 +125,6 @@ def venues():
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
-    # seach for Hop should return "The Musical Hop".
-    # search for "Music" should return "The Musical Hop" and "Park Square Live Music & Coffee"
     response = {}
     search_term = request.form.get('search_term', '')
     num_upcoming_shows = db.session.query(db.func.count(Show.artist_id)).filter_by(artist_id=Venue.id)
@@ -275,19 +261,6 @@ def edit_artist(artist_id):
     artist = Artist.query.get(artist_id)
     form = ArtistForm(obj=artist)
     form.genres.data = artist.genres.split(',')
-    # artist = {
-    #     "id": 4,
-    #     "name": "Guns N Petals",
-    #     "genres": ["Rock n Roll"],
-    #     "city": "San Francisco",
-    #     "state": "CA",
-    #     "phone": "326-123-5000",
-    #     "website": "https://www.gunsnpetalsband.com",
-    #     "facebook_link": "https://www.facebook.com/GunsNPetals",
-    #     "seeking_venue": True,
-    #     "seeking_description": "Looking for shows to perform at in the San Francisco Bay Area!",
-    #     "image_link": "https://images.unsplash.com/photo-1549213783-8284d0336c4f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=300&q=80"
-    # }
     return render_template('forms/edit_artist.html', form=form, artist=artist)
 
 
