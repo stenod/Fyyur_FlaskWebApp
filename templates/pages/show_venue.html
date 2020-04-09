@@ -8,6 +8,7 @@
                 {{ venue.name }}
                 <a href="/venues/{{ venue.id }}/edit">
                     <button class="btn btn-default">Edit venue</button>
+                    <button type="button" class="btn btn-danger delete-button" data-id="{{ venue.id }}">Delete venue</button>
                 </a>
             </h1>
             <p class="subtitle">
@@ -87,15 +88,7 @@
         </div>
     </section>
 
-    <div class="form-wrapper">
-        <form id="delete-form" class="form" method="post">
-            <div class="form-group">
-                <label>Delete Venue</label>
-                <button type="button" class="btn btn-danger delete-button" data-id="{{ venue.id }}">&cross;
-                </button>
-            </div>
-        </form>
-    </div>
+
 
     <script>
         let csrf_token = "{{ csrf_token() }}";

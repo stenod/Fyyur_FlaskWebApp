@@ -2,7 +2,6 @@
 # Imports
 # ----------------------------------------------------------------------------#
 
-import json
 import datetime
 import sys
 
@@ -13,8 +12,8 @@ from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 import logging
 from logging import Formatter, FileHandler
-from flask_wtf import Form, CSRFProtect
-from sqlalchemy import func, inspect
+from flask_wtf import CSRFProtect
+from sqlalchemy import inspect
 
 from forms import *
 from flask_migrate import Migrate
@@ -51,11 +50,6 @@ class Venue(db.Model):
     website = db.Column(db.String(120))
     facebook_link = db.Column(db.String(120))
     shows = db.relationship('Show', backref='venue', lazy=True)
-    # upcoming_shows = db.relationship('Show', primaryjoin="and_(Venue.id==Show.venue_id, "
-    #                                                      "Show.start_time>'NOW()')", backref='venue_upcoming',
-    #                                  lazy=True)
-    # past_shows = db.relationship('Show', primaryjoin="and_(Venue.id==Show.venue_id, "
-    #                                                  "Show.start_time<'NOW()')", backref='venue_past', lazy=True)
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
@@ -84,15 +78,9 @@ class Artist(db.Model):
     image_link = db.Column(db.String(500))
     website_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
-    upcoming_shows = db.relationship('Show', primaryjoin="and_(Artist.id==Show.artist_id, "
-                                                         "Show.start_time>'NOW()')", backref='artist_upcoming',
-                                     lazy=True)
-    past_shows = db.relationship('Show', primaryjoin="and_(Artist.id==Show.artist_id, "
-                                                     "Show.start_time<'NOW()')", backref='artist_past', lazy=True)
-    # TODO: implement any missing fields, as a database migration using Flask-Migrate
+    shows = db.relationship('Show', backref='artist', lazy=True)
 
 
-# TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
 class Show(db.Model):
     __tablename__ = 'Show'
     id = db.Column(db.Integer, primary_key=True)
@@ -233,9 +221,6 @@ def delete_venue(venue_id):
         return jsonify({'success': False}), 400
     finally:
         db.session.close()
-
-    # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
-    # clicking that button delete it from the db then redirect the user to the homepage
 
 
 #  Artists
@@ -400,7 +385,6 @@ def shows():
                             Artist.name.label('artist_name'),
                             Artist.image_link.label('artist_image_link'),
                             Show.start_time).join(Venue, Artist).all()
-
     return render_template('pages/shows.html', shows=data)
 
 
@@ -413,7 +397,6 @@ def create_shows():
 
 @app.route('/shows/create', methods=['POST'])
 def create_show_submission():
-
     form = ShowForm(request.form)
     if request.method == 'POST' and form.validate():
         try:
